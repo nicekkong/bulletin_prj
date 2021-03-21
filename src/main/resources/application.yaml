@@ -1,0 +1,50 @@
+spring:
+  profiles:
+    active: local # 기본 환경 선택
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+env:
+  servers:
+    dev1.example.com,dev2.example.com,dev3.example.com
+
+
+
+my:
+  email: nicekkong@gmail.com
+
+
+number: 100
+
+app:
+  jwtSecret: TORINGTOKEN123
+  jwtExpirationInMs: 10800000 # 1000 * 60 * 60 * 3 = 3Days
+
+# 인증이 필요 없는 URL
+permitAllUrls:
+  /api/login/**,
+  /api/signup/**,
+  /api/memberInfo,
+  /api/mentoring/**,
+  /api/mentee/**,
+  /api/file/**,
+  /api/decision/main,
+  /mask/**
+
+# aws 설정
+cloud:
+  aws:
+    credentials:
+      accessKey:
+      secretKey:
+    s3:
+      bucket:
+    region:
+      static:
+    stack:
+      auto: false
+
+
+

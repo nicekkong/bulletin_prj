@@ -1,0 +1,42 @@
+# local 환경
+spring:
+  profiles: local
+  datasource:
+#    url: jdbc:mysql://nicekkong.com:3306/trdev?serverTimezone=UTC&characterEncoding=UTF-8&verifyServerCertificate=false&useSSL=false
+    url: jdbc:mariadb://dbdev.vps.phps.kr:3306/trdev
+    username: truser
+    password: truser!@
+    #    driver-class-name: com.mysql.cj.jdbc.Driver
+    driver-class-name: org.mariadb.jdbc.Driver
+    tomcat:
+      validation-query: select 1 from dual
+      test-on-borrow: true
+      test-on-return: false
+      test-while-idle: true
+      initial-size: 2
+      max-active: 2
+      max-idle: 2
+      min-idle: 2
+      max-wait: 5000
+      time-between-eviction-runs-millis: 5000
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy
+        implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+#    database: mysql
+#    database-platform:
+    properties:
+      hibernate.dialect: org.hibernate.dialect.MariaDB53Dialect
+      format_sql: true
+
+
+logging:
+  config: classpath:${spring.profiles}/logback.xml
+#  level.org.hibernate.type.descriptor.sql: trace
+
+
+my:
+  email: local-nicekkong@gmail.com

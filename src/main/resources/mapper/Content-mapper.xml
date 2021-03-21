@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cplanet.toring.mapper.ContentMapper">
+    <select id="selectMainCategory" parameterType="java.lang.String" resultType="com.cplanet.toring.domain.Category$MainCategory">
+        SELECT  id, name
+        FROM  tr_category_sub1
+    </select>
+
+    <select id="selectSubCategory" parameterType="java.lang.String" resultType="com.cplanet.toring.domain.Category$SubCategory">
+        SELECT  id, name, category_sub1_id as mainCategoryId
+        FROM  tr_category_sub2
+    </select>
+
+    <insert id="insertStartStep1" parameterType="com.cplanet.toring.dto.request.ContentRequest">
+        insert into tr_contents (
+            member_id,
+            title,
+            keyword,
+            category_sub1,
+            category_sub2,
+            preview,
+            status,
+            create_date
+        ) values (
+            #{memberid},
+            #{title},
+            #{keyword},
+            #{categorysub1},
+            #{categorysub2},
+            #{preview},
+            #{status},
+            now()
+        )
+        <selectKey keyProperty="id" resultType="java.lang.Long">
+            select last_insert_id()
+        </selectKey>
+    </insert>
+
+    <update id="updateStartStep1" parameterType="com.cplanet.toring.dto.request.ContentRequest">
+        update tr_contents
+        set title = #{title},
+            keyword = #{keyword},
+            category_sub1 = #{categorysub1},
+            category_sub2 = #{categorysub2},
+            preview = #{preview},
+            status = #{status},
+            update_date = now()
+        where id = #{id}
+        and member_id = #{memberid}
+    </update>
+
+    <update id="updateStartStep2Page1" parameterType="com.cplanet.toring.dto.request.ContentRequest">
+        update tr_contents
+        set content = #{content},
+            status = #{status},
+            update_date = now()
+        where id = #{id}
+        and member_id = #{memberid}
+    </update>
+
+    <update id="updateStartStep2Page2" parameterType="com.cplanet.toring.dto.request.ContentRequest">
+        update tr_contents
+        set content2 = #{content},
+            status = #{status},
+            update_date = now()
+        where id = #{id}
+        and member_id = #{memberid}
+    </update>
+
+    <update id="updateStartStep2Page3" parameterType="com.cplanet.toring.dto.request.ContentRequest">
+        update tr_contents
+        set content3 = #{content},
+            status = #{status},
+            update_date = now()
+        where id = #{id}
+        and member_id = #{memberid}
+    </update>
+
+    <update id="updateAttatchStep" parameterType="com.cplanet.toring.dto.request.ContentRequest">
+        update tr_contents
+        set
+        <if test="backgroundimage != null">
+            background_image = #{backgroundimage},
+        </if>
+        <if test="thumbimage != null">
+            thumb_image = #{thumbimage},
+        </if>
+        <if test="attatchmeta != null">
+            attatch_meta = #{attatchmeta},
+        </if>
+            toring = #{toring},
+            update_date = now()
+        where id = #{id}
+        and member_id = #{memberid}
+    </update>
+
+    <update id="updateContentStatus" parameterType="com.cplanet.toring.dto.request.ContentRequest">
+        update tr_contents
+        set status = #{status},
+            update_date = now()
+        where id = #{id}
+        and member_id = #{memberid}
+    </update>
+
+    <select id="selectContentInfo" parameterType="java.lang.Long" resultType="com.cplanet.toring.dto.response.ContentResponse">
+        select
+          a.id,
+          a.member_id as memberid,
+          a.title,
+          a.keyword,
+          a.category_sub1 as categorysub1,
+          a.category_sub2 as categorysub2,
+          a.preview,
+          a.content,
+          a.content2,
+          a.content3,
+          a.content_tts as contenttts,
+          a.attatch_meta as attatchmeta,
+          a.thumb_image as thumbimage,
+          a.background_image as backgroundimage,
+          a.toring,
+          a.status,
+          a.view_date as viewdate,
+          a.create_date as createdate,
+          a.update_date as updatedate,
+          (select nickname from tr_profile where member_id = a.member_id) as nickname,
+          (select count(1) from tr_contents_review where content_id = a.id) as reviewcount,
+          (select count(1) from tr_purchase_history where contents_id = a.id) as viewcount
+        from tr_contents a
+        where id = #{contentid}
+    </select>
+
+    <select id="selectNextContent" parameterType="java.util.Map" resultType="com.cplanet.toring.dto.response.ContentResponse$MentorContent">
+        select
+          a.id,
+          a.title,
+          a.thumb_image as thumbimage
+        from tr_contents a
+        where a.id = (select min(id) from tr_contents where id &gt; #{contentid} and member_id = #{memberid})
+        and a.status = 'display'
+    </select>
+
+    <select id="selectPreviousContent" parameterType="java.util.Map" resultType="com.cplanet.toring.dto.response.ContentResponse$MentorContent">
+        select
+        a.id,
+        a.title,
+        a.thumb_image as thumbimage
+        from tr_contents a
+        where id =  (select max(id) from tr_contents where id &lt; #{contentid} and member_id = #{memberid})
+        and a.status = 'display'
+    </select>
+
+
+    <select id="selectContentList" parameterType="java.lang.Long" resultType="com.cplanet.toring.domain.ContentInfo">
+        select
+          id,
+          member_id as memberid,
+          title,
+          keyword,
+          category_sub1 as categorysub1,
+          category_sub2 as categorysub2,
+          thumb_image as thumbimage,
+          create_date as createdate,
+          update_date as updatedate,
+          toring,
+          status
+        from tr_contents
+        where member_id = #{memberid}
+        order by createdate desc
+    </select>
+
+    <select id="selectContentListByKeyword" parameterType="java.util.Map" resultType="com.cplanet.toring.domain.ContentInfo">
+        select
+        a.id,
+        a.member_id as memberid,
+        a.title,
+        a.keyword,
+        a.category_sub1 as categorysub1,
+        a.category_sub2 as categorysub2,
+        a.thumb_image as thumbimage,
+        a.create_date as createdate,
+        a.update_date as updatedate,
+        a.toring,
+        a.status,
+        (select nickname from tr_profile where member_id = a.member_id) as nickname,
+        (select count(1) from tr_purchase_history where contents_id = a.id) as totalcount,
+        (select count(1) from tr_purchase_history where contents_id = a.id and create_date > date_add(now(), interval -7 day)) as currentcount
+        from tr_contents a
+        where a.status = 'display'
+        <if test="sub1 != null and sub1 != 0">
+            and a.category_sub1 = #{sub1}
+        </if>
+        <if test="sub2 != null and sub2 != 0">
+            and a.category_sub2 = #{sub2}
+        </if>
+        <if test="keyword1 != null">
+            and a.title like #{keyword1}
+            or a.keyword like #{keyword1}
+            or a.content like #{keyword1}
+        </if>
+        <if test="keyword2 != null">
+            or a.title like #{keyword2}
+            or a.keyword like #{keyword2}
+            or a.content like #{keyword2}
+        </if>
+        <if test="keyword3 != null">
+            or a.title like #{keyword3}
+            or a.keyword like #{keyword3}
+            or a.content like #{keyword3}
+        </if>
+        <if test="keyword4 != null">
+            or a.title like #{keyword4}
+            or a.keyword like #{keyword4}
+            or a.content like #{keyword4}
+        </if>
+        <if test="keyword5 != null">
+            or a.title like #{keyword5}
+            or a.keyword like #{keyword5}
+            or a.content like #{keyword5}
+        </if>
+        <if test='type != null and type.equals("popular")'>
+          order by totalcount desc, createdate desc
+        </if>
+        <if test='type != null and type.equals("increase")'>
+          order by currentcount desc, createdate desc
+        </if>
+        <if test='type != null and type.equals("new")'>
+          order by createdate desc
+        </if>
+        <if test='type == null'>
+            order by createdate desc
+        </if>
+        <if test="start != null">
+            limit #{start}, #{pagecount}
+        </if>
+    </select>
+</mapper>

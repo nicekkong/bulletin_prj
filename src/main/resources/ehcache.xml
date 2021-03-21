@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd" updateCheck="false">
+    <diskStore path="java.io.tmpdir" />
+
+    <!-- https://javacan.tistory.com/entry/133   -->
+    <!-- #####################################
+        eternal=true이면 Timeout 설정은 무시하고 캐시가 삭제되지 않는다.
+        timeToIdleSeconds : 해당 시간 동안 조회되지 않으면 캐시에서 제거된다., 0이면 조회 관련 만료 되지 않는다.
+        timeToLiveSeconds : 해당 시간이 지나면 캐시에서 제거된다.
+         #####################################  -->
+    <defaultCache
+            maxElementsInMemory="10000"
+            eternal="false"
+            timeToIdleSeconds="60"
+            timeToLiveSeconds="300"
+            overflowToDisk="true"
+            maxElementsOnDisk="100000"
+            diskPersistent="false"
+            diskExpiryThreadIntervalSeconds="300"
+            memoryStoreEvictionPolicy="LRU">
+    </defaultCache>
+    <cache name="threeMinCache"
+           maxEntriesLocalHeap="10000"
+           maxEntriesLocalDisk="1000"
+           eternal="false"
+           diskSpoolBufferSizeMB="20"
+           timeToIdleSeconds="300"
+           timeToLiveSeconds="600"
+           memoryStoreEvictionPolicy="LFU"
+           transactionalMode="off">
+        <persistence strategy="localTempSwap" />
+    </cache>
+
+    <cache name="oneMinCache"
+           maxEntriesLocalHeap="100"
+           maxEntriesLocalDisk="100"
+           eternal="false"
+           diskSpoolBufferSizeMB="30"
+           timeToIdleSeconds="60"
+           timeToLiveSeconds="60"
+           memoryStoreEvictionPolicy="LFU"
+           transactionalMode="off">
+        <persistence strategy="localTempSwap" />
+    </cache>
+
+</ehcache>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.cplanet.toring.mapper.MemberMapper">
+    <select id="selectMemberProfile" parameterType="java.lang.Long" resultType="com.cplanet.toring.dto.ProfileDto">
+        select
+          member_id as memberid,
+          thumbnail,
+          mentor_title as mentortitle,
+          nickname,
+          category,
+          introduce,
+          (select count(1) from tr_my_mentor where mentor_id = #{memberId}) as subscount,
+          (select count(1) from tr_purchase_history where member_id = #{memberId}) as purchasecount,
+          (select count(1) from tr_my_mentor where member_id = #{memberId}) as mentorcount
+        from tr_profile
+        where member_id = #{memberId}
+    </select>
+    <select id="selectMemberProfileList" parameterType="java.lang.String" resultType="com.cplanet.toring.dto.ProfileDto">
+        select
+        a.member_id as memberid,
+        a.thumbnail,
+        a.mentor_title as mentortitle,
+        a.nickname,
+        a.category,
+        a.introduce,
+        (select count(1) from tr_my_mentor where mentor_id = memberid) as subscount
+        from tr_profile a
+        where 1 = 1
+        <if test="keyword != null and keyword != ''">
+          and category like #{keyword}
+        </if>
+        order by subscount desc
+    </select>
+    <insert id="insertMemberProfile" parameterType="com.cplanet.toring.dto.ProfileDto">
+        insert into tr_profile (
+          member_id,
+          thumbnail,
+          mentor_title,
+          nickname,
+          category,
+          introduce,
+          create_date
+        ) values (
+          #{memberid},
+          #{thumbnail},
+          #{mentortitle},
+          #{nickname},
+          #{category},
+          #{introduce},
+          now()
+        )
+    </insert>
+
+    <update id="updateMemberProfile" parameterType="com.cplanet.toring.dto.ProfileDto">
+        update tr_profile
+        set
+          thumbnail = #{thumbnail},
+          mentor_title = #{mentortitle},
+          category = #{category},
+          introduce = #{introduce},
+          update_date = now()
+        where member_id = #{memberid}
+    </update>
+
+    <insert id="insertSubscribe" parameterType="java.lang.Long">
+        insert into tr_my_mentor (
+          member_id,
+          mentor_id,
+          create_date,
+          update_date
+        ) values (
+          #{param1},
+          #{param2},
+          now(),
+          now()
+        )
+    </insert>
+
+    <delete id="deleteSubscribe" parameterType="java.lang.Long">
+        delete from tr_my_mentor
+        where member_id = #{param1}
+        and mentor_id = #{param2}
+    </delete>
+
+    <select id="selectSubscribeYn" parameterType="java.lang.Long" resultType="java.lang.String">
+        select if(count(1) > 0, 'Y', 'N') as subsyn
+        from tr_my_mentor
+        where member_id = #{param1}
+        and mentor_id = #{param2}
+    </select>
+</mapper>
