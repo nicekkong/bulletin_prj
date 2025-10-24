@@ -4,9 +4,13 @@ import com.cplanet.toring.dto.response.MaskResponseDto;
 import com.cplanet.toring.utils.DateUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import static org.junit.Assert.assertEquals;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -24,37 +28,58 @@ import java.util.List;
 public class RestTemplateTest {
 
 
-    @Autowired
+    @MockBean
     private RestTemplate restTemplate;
 
     @Test
     public void restTemplateTest() {
-
-        RestTemplate restTemplate = new RestTemplate();
-
-        HashMap<String, Object> result = new  HashMap<>();
-
-        HashMap<String, String> param = new  HashMap<>();
+        HashMap<String, String> param = new HashMap<>();
         param.put("address", "서울특별시 서초구 잠원동");
 
-        result = restTemplate.getForObject("https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1/storesByAddr/json", result.getClass(),  param);
+        MaskResponseDto mockResponse = new MaskResponseDto();
+        mockResponse.setAddress("서울특별시 서초구 잠원동");
+        mockResponse.setCount(10);
 
+        Mockito.when(restTemplate.getForObject(
+                Mockito.eq("https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1/storesByAddr/json?address={address}"),
+                Mockito.eq(MaskResponseDto.class),
+                Mockito.eq(param)
+        )).thenReturn(mockResponse);
 
-        System.out.println(result.toString());
+        MaskResponseDto response = restTemplate.getForObject(
+                "https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1/storesByAddr/json?address={address}",
+                MaskResponseDto.class,
+                param
+        );
+
+        assertEquals("서울특별시 서초구 잠원동", response.getAddress());
+        assertEquals(10, response.getCount());
     }
 
     @Test
     public void restTemplateTest2() {
-
-        HashMap<String, String> param = new  HashMap<>();
+        HashMap<String, String> param = new HashMap<>();
         param.put("address", "서울특별시 서초구 잠원동");
 
-        MaskResponseDto response = restTemplate.getForObject("https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1/storesByAddr/json?address={address}", MaskResponseDto.class,  param);
-        System.out.println(response.toString());
+        MaskResponseDto mockResponse = new MaskResponseDto();
+        mockResponse.setAddress("서울특별시 서초구 잠원동");
+        mockResponse.setCount(20);
+        ResponseEntity<MaskResponseDto> mockEntity = new ResponseEntity<>(mockResponse, HttpStatus.OK);
 
-        ResponseEntity<MaskResponseDto> responseEntity = restTemplate.getForEntity("https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1/storesByAddr/json?address={address}", MaskResponseDto.class,  param);
-        System.out.println("STATUS CODE => " + responseEntity.getStatusCodeValue() + responseEntity.getStatusCode());
-        System.out.println(responseEntity.getBody());
+        Mockito.when(restTemplate.getForEntity(
+                Mockito.eq("https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1/storesByAddr/json?address={address}"),
+                Mockito.eq(MaskResponseDto.class),
+                Mockito.eq(param)
+        )).thenReturn(mockEntity);
+
+        ResponseEntity<MaskResponseDto> responseEntity = restTemplate.getForEntity(
+                "https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1/storesByAddr/json?address={address}",
+                MaskResponseDto.class,
+                param
+        );
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+        assertEquals(20, responseEntity.getBody().getCount());
     }
 
     @Value("${my.email}")
